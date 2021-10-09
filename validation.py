@@ -34,7 +34,26 @@ def validate_private(preds):
 
 
 def check_distribution(preds):
-    pass
+    p_cols = [i for i in preds.columns if i.startswith('P')]
+    p_mapping = {
+        i: 400000 for i in p_cols
+    }
+    q_mapping = {
+        'Q_1': 2,
+        'Q_2': 1,
+        'Q_3': 1,
+        'Q_4': 1,
+        'Q_5': 1,
+        'Q_6': 5,
+        'Q_7': 2,
+        'Q_8': 2,
+    }
+    mapping = {**p_mapping, **q_mapping}
+    for col in preds.columns:
+        if col in mapping:
+            bad_index = preds[preds[col] > mapping[col]].index
+            if bad_index.shape[0] > 0:
+                print(f'WARNING in rows {bad_index.values}: {col} is out of upper bound of {mapping[col]}')
 
 
 def check_pressure_order(idx, preds):
@@ -118,6 +137,9 @@ def check_validity(preds):
 
     # Check that some specific Q and P follow their linear relationship
     check_p_q_relationship(preds)
+
+    # Check upper bounds of the Q-s
+    check_distribution(preds)
 
     cols = [i for i in preds.columns if i.startswith('valid')]
     validity_score = preds[cols].mean(axis=1)
