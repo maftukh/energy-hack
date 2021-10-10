@@ -1,15 +1,16 @@
 import streamlit as st
 import numpy as np
 import pandas as pd
+from gasNcity import GasNCity
 import base64
 
 
-def get_table_download_link(df):
+def get_table_download_link(df_d):
     """Generates a link allowing the data in a given panda dataframe to be downloaded
     in:  dataframe
     out: href string
     """
-    csv = df.to_csv(index=False)
+    csv = df_d.to_csv(index=True)
     b64 = base64.b64encode(csv.encode()).decode()  # some strings <-> bytes conversions necessary here
     href = f'<a href="data:file/csv;base64,{b64}" download="myfilename.csv">Download csv file</a>'
     return href
@@ -49,6 +50,9 @@ def set_sidebar():
     P_8 = st.sidebar.number_input('P_8', 230000, step=10000)
     P_9 = st.sidebar.number_input('P_9', 280000, step=10000)
 
+    PGRS_1 = st.sidebar.number_input('PGRS_1', 300000, step=10000)
+    PGRS_2 = st.sidebar.number_input('PGRS_2', 290000, step=10000)
+
     st.sidebar.markdown("Здесь можно задать перекрытие вентилей")
     v1_zero = st.sidebar.checkbox("Перекрыт вентиль №1", value=False)
     v2_zero = st.sidebar.checkbox("Перекрыт вентиль №2", value=False)
@@ -64,11 +68,11 @@ def set_sidebar():
     v12_zero = st.sidebar.checkbox("Перекрыт вентиль №12", value=False)
 
     if data:
-        st.write('read data')
+        st.markdown('read data')
         try:
             return pd.read_csv(data)
         except:
-            st.write('second try')
+            st.markdown('second try')
             return pd.read_csv(data, sep=';')
 
     vars = locals()
@@ -81,12 +85,22 @@ def set_sidebar():
 
 
 def run(df):
-    pass
+    model = GasNCity(load_models=True, folder_path='models')
+    # res = model.find_valves(df)
+    res = df
+    st.title("Предложенные режимы управления")
+    st.dataframe(res)
+    st.markdown(get_table_download_link(res), unsafe_allow_html=True)
 
 
 if __name__ == '__main__':
+    good_cols = [f'Q_{i}' for i in range(1, 8)] + \
+        [f'QPlant_{i}' for i in range(1, 5)] + \
+        [f'P_{i}' for i in range(1, 10)] + \
+        ['QGRS_1', 'QGRS_2', 'PGRS_1', 'PGRS_2']
+
     df = set_sidebar()
-    run(df)
+    run(df[good_cols])
 
     # st.write("Box extent, X:", x1, "-", x2, " and Y:", y1, "-", y2, "Box density:", density)
     # if st.button("Calculate"):
