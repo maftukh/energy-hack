@@ -27,6 +27,10 @@ class GasNCity():
             for valve in self.good_valves:
                 path = os.path.join(folder_path, f'{valve}_model.sav')
                 self.valve_models[valve] = pickle.load(open(path, 'rb'))
+            path_mean = os.path.join(folder_path, 'means.sav')
+            self.qp_mean = pickle.load(open(path_mean, 'rb'))
+            path_std = os.path.join(folder_path, 'stds.sav')
+            self.qp_std = pickle.load(open(path_std, 'rb'))
     
     def predict_qp(self, valves):
         valves = pd.DataFrame(valves)
@@ -96,6 +100,10 @@ class GasNCity():
         for device, model in self.valve_models.items():
             path = os.path.join(folder, f'{device}_model.sav')
             pickle.dump(model, open(path, 'wb'))
+        path_mean = os.path.join(folder, 'means.sav')
+        self.qp_mean = pickle.dump(self.qp_mean, open(path_mean, 'wb'))
+        path_std = os.path.join(folder, 'stds.sav')
+        self.qp_mean = pickle.dump(self.qp_std, open(path_std, 'wb'))
     
     
     def find_valves(self, qps, constraint=[], verbose=False):
@@ -261,3 +269,4 @@ class GasNCity():
         validity_binary = preds[cols].product(axis=1)
 
         return validity_binary, validity_score
+
