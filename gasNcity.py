@@ -8,6 +8,10 @@ from sklearn.linear_model import LinearRegression
 from sklearn.ensemble import RandomForestRegressor
 import pickle
 import os
+from tqdm import tqdm
+import pickle
+import os
+from scipy.optimize import root
 
 class GasNCity():
     def __init__(self, load_models=False, folder_path = ''):
@@ -119,7 +123,7 @@ class GasNCity():
         for v in sorted(self.valves, key=lambda t: int(t.split('_')[-1])):
             out[v] = []
         
-        good_valves = self.predict_good_valves(qps)
+        good_valves = np.clip(self.predict_good_valves(qps), 0, 1)
         for v in good_valves.columns:
             out[v] = good_valves[v].values
         for v in constraint:
@@ -127,10 +131,11 @@ class GasNCity():
         for entry, qp in enumerate(qps.values):
             best_rmse = np.inf
             best_combo = {}
-            for guess in itertools.product(*grid.values()):
+            for guess in tqdm(itertools.product(*grid.values())):
                 for v in good_valves.columns:
                     params[v] = [good_valves[v][entry]]
-
+                for v in constraint:
+                    params[v] = [0.]
                 for i, v in enumerate(grid.keys()):
                     params[v] = [guess[i]]
                 
