@@ -10,7 +10,7 @@ def get_table_download_link(df_d):
     in:  dataframe
     out: href string
     """
-    csv = df_d.to_csv(index=True)
+    csv = df_d.to_csv(index=False)
     b64 = base64.b64encode(csv.encode()).decode()  # some strings <-> bytes conversions necessary here
     href = f'<a href="data:file/csv;base64,{b64}" download="myfilename.csv">Download csv file</a>'
     return href
@@ -31,8 +31,8 @@ def set_sidebar():
     Q_7 = st.sidebar.number_input('Q_7', 1.2, step=0.05)
     Q_8 = st.sidebar.number_input('Q_8', 1.8, step=0.05)
 
-    QGRS_1 = st.sidebar.number_input('QGRS_1', 12., step=0.2)
-    QGRS_2 = st.sidebar.number_input('QGRS_2', 12., step=0.2)
+    QGRS_1 = st.sidebar.number_input('QGRS_1', 16., step=0.2)
+    QGRS_2 = st.sidebar.number_input('QGRS_2', 16., step=0.2)
 
     QPlant_1 = st.sidebar.number_input('QPlant_1', 2.6, step=0.1)
     QPlant_2 = st.sidebar.number_input('QPlant_2', 3.8, step=0.1)
@@ -50,8 +50,8 @@ def set_sidebar():
     P_8 = st.sidebar.number_input('P_8', 230000, step=10000)
     P_9 = st.sidebar.number_input('P_9', 280000, step=10000)
 
-    PGRS_1 = st.sidebar.number_input('PGRS_1', 300000, step=10000)
-    PGRS_2 = st.sidebar.number_input('PGRS_2', 290000, step=10000)
+    PGRS_1 = st.sidebar.number_input('PGRS_1', 350000, step=10000)
+    PGRS_2 = st.sidebar.number_input('PGRS_2', 350000, step=10000)
 
     st.sidebar.markdown("Здесь можно задать перекрытие вентилей")
     v1_zero = st.sidebar.checkbox("Перекрыт вентиль №1", value=False)
@@ -85,10 +85,12 @@ def set_sidebar():
 
 
 def run(df):
-    model = GasNCity(load_models=True, folder_path='models')
-    # res = model.find_valves(df)
-    res = df
+
     st.title("Предложенные режимы управления")
+    st.markdown("Идет расчет. Ожидаемое время расчета: 3.5 минуты на одну задачу")
+    model = GasNCity(load_models=True, folder_path='models')
+    res = model.find_valves(df)
+    # res = df
     st.dataframe(res)
     st.markdown(get_table_download_link(res), unsafe_allow_html=True)
 
@@ -101,70 +103,5 @@ if __name__ == '__main__':
 
     df = set_sidebar()
     run(df[good_cols])
-
-    # st.write("Box extent, X:", x1, "-", x2, " and Y:", y1, "-", y2, "Box density:", density)
-    # if st.button("Calculate"):
-    #    line = gz(xp,zp,x1,x2,y1,y2,density)
-    #    line=zp
-
-    # x = np.array([x1, x1, x2, x2, x1])
-    # y = np.array([y1, y2, y2, y1, y1])
-    #
-    # # box = pd.DataFrame(data=np.column_stack((x,y)),columns=['X','Y'])
-    # # c=alt.Chart(box).mark_line().encode(x='X',y="Y",color=alt.Color('X', scale=alt.Scale(scheme='dark2'))
-    # #        scale=alt.Scale(domain=(0, 100))
-    # #        )
-    # box = pd.DataFrame({'x1': [x1], 'x2': [x2], 'y1': [y1], 'y2': [y2]})
-    #
-    # c = alt.Chart(box, width=600, height=400).mark_rect(fill='red', stroke='red').encode(
-    #     alt.X('x1', scale=alt.Scale(domain=(0, 100)), title="Distance (m)"),
-    #     alt.Y('y1', scale=alt.Scale(domain=(60, 0)), title="Depth (m)"),
-    #     x2='x2',
-    #     y2='y2').configure_axis(
-    #     labelFontSize=18,
-    #     titleFontSize=18
-    # )
-    #
-    # st.write("Box position")
-    #
-    # st.altair_chart(c)
-    #
-    # chart_data = pd.DataFrame(data=np.column_stack((xp, line)), columns=['Distance (m)', 'Gravity (mGal)'])
-    # # st.line_chart(chart_data.rename(columns={'Distance (m)':'index'}).set_index('index'),width=600)
-    #
-    # domain = ['Distance (m)']
-    # range_ = ['blue']
-    # line_chart = alt.Chart(chart_data, width=600, height=400).mark_line(interpolate='basis').encode(
-    #     alt.X('Distance (m)', title='Distance (m)'),
-    #     alt.Y('Gravity (mGal)', title='Gravity (mGal)'),
-    #     color=alt.value('blue')).properties(
-    #     title='Gravity of a box').configure_axis(
-    #     labelFontSize=18,
-    #     titleFontSize=18
-    # )
-    #
-    # # scale=alt.Scale(scheme='blueorange', domain=[50, 100])
-    # st.altair_chart(line_chart)
-    #
-    # # alt.Chart(source).mark_line().encode(
-    # #    x='x',
-    # #    y='f(x)'
-    # # )
-    #
-    # # st.line_chart(line)
-    #
-    # if st.checkbox('Show dataframe'):
-    #     chart_data = pd.DataFrame(data=np.column_stack((xp, line)), columns=['Distance (m)', 'Gravity (mGal)'])
-    #     # chart_data1 = pd.DataFrame(data=xp,columns=['Distance (m)'])
-    #     # chart_data2 = pd.DataFrame(data=line,columns=['Gravity (mGal)'])
-    #     # st.write("Distance (m)\n")
-    #     # st.write(np.c_[xp])
-    #     # st.dataframe(chart_data1,510,2600)
-    #     # st.write("Gravity (mGal)\n")
-    #     # st.dataframe(chart_data2,610,2600)
-    #     st.dataframe(chart_data, 610, 2600)
-    #
-    #     # st.write(chart_data2)
-    #     # st.write(np.c_[line])
-
-    # st.markdown(get_table_download_link(chart_data), unsafe_allow_html=True)
+    # if st.sidebar.button('Начать расчет'):
+    #     run(df[good_cols])
