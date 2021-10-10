@@ -129,6 +129,7 @@ class GasNCity():
         for v in constraint:
             out[v] = np.zeros(len(qps))
         for entry, qp in enumerate(qps.values):
+
             best_rmse = np.inf
             best_combo = {}
             for guess in tqdm(itertools.product(*grid.values())):
@@ -142,11 +143,21 @@ class GasNCity():
                 qp_pred = (self.predict_qp(pd.DataFrame(params)) - self.qp_mean) / self.qp_std
                 qp_scaled = (qp - self.qp_mean) / self.qp_std
                 rmse = np.sum(((qp_pred - qp_scaled)**2 / (qp_scaled+1e-6)**2).values)
+                
                 if rmse < best_rmse:
                     best_rmse = rmse
                     best_combo = params
+            
+            preds = self.predict_qp(pd.DataFrame(best_combo))
+            qp_pred = self.check_validity(preds)
+            if not qp_pred[0][0]:    
+                for v in [x for x in good_valves if x not in constraint]:
+                    delta = 0.1 if best_combo[v] > 0.5 else 0.2
+                    best_combo[v] = np.clip(best_combo[v]+delta, 0 , 1)
             for v in valves_to_predict:
                 out[v].append(best_combo[v][0])
+                                    
+            
             if verbose:
                 print(f'Solution found for {entry}-th entry')
         return pd.DataFrame(out)
@@ -274,4 +285,5 @@ class GasNCity():
         validity_binary = preds[cols].product(axis=1)
 
         return validity_binary, validity_score
+
 
