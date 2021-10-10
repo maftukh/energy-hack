@@ -152,8 +152,8 @@ class GasNCity():
             qp_pred = self.check_validity(preds)
             if not qp_pred[0][0]:    
                 for v in [x for x in good_valves if x not in constraint]:
-                    delta = 0.1 if best_combo[v] > 0.5 else 0.2
-                    best_combo[v] = np.clip(best_combo[v]+delta, 0 , 1)
+                    delta = 0.1 if best_combo[v][0] > 0.5 else 0.2
+                    best_combo[v] = np.clip(best_combo[v][0]+delta, 0 , 1)
             for v in valves_to_predict:
                 out[v].append(best_combo[v][0])
                                     
